@@ -40,10 +40,17 @@ h1{font-family:'Playfair Display',serif;font-weight:800;color:#1e1e2e;line-heigh
 #chapbar .cdiv{width:22px;height:1px;background:#dcdad2}
 /* dark/red/yellow slide variants set via body-level data attr */
 #chapbar.onlight .cstep{color:#c9c7bf}
+/* --- countdown timer (top-right corner, all slides) --- */
+#wtimer{position:absolute;top:24px;right:78px;z-index:120;display:flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;background:rgba(30,30,46,.92);border-radius:999px;padding:5px 12px 5px 6px;box-shadow:0 2px 10px rgba(0,0,0,.18)}
+#wtimer button{all:unset;cursor:pointer;width:26px;height:26px;border-radius:50%;background:#cc112c;display:flex;align-items:center;justify-content:center;transition:background .15s}
+#wtimer button:hover{background:#e01736}
+#wtimer button svg{width:12px;height:12px;display:block}
+#wtimer .wt-time{font-size:16px;font-weight:700;letter-spacing:1px;color:#fff;min-width:74px;text-align:center;font-variant-numeric:tabular-nums}
+#wtimer.wt-done .wt-time{color:#fff38d}
 </style>
 </head>
 <body>
-<div class="stage" id="stage"><div id="chapbar"><div class="cstep" data-ch="1"><span class="cnum">1</span><span>Context</span></div><div class="cdiv"></div><div class="cstep" data-ch="2"><span class="cnum">2</span><span>Workspace</span></div><div class="cdiv"></div><div class="cstep" data-ch="3"><span class="cnum">3</span><span>Brain & Skills</span></div><div class="cdiv"></div><div class="cstep" data-ch="4"><span class="cnum">4</span><span>Make It Yours</span></div></div>
+<div class="stage" id="stage"><div id="chapbar"><div class="cstep" data-ch="1"><span class="cnum">1</span><span>Context</span></div><div class="cdiv"></div><div class="cstep" data-ch="2"><span class="cnum">2</span><span>Workspace</span></div><div class="cdiv"></div><div class="cstep" data-ch="3"><span class="cnum">3</span><span>Brain & Skills</span></div><div class="cdiv"></div><div class="cstep" data-ch="4"><span class="cnum">4</span><span>Make It Yours</span></div></div><div id="wtimer"><button id="wt-toggle" aria-label="Start timer"><svg id="wt-icon" viewBox="0 0 24 24" fill="#fff"><polygon points="7,5 19,12 7,19"/></svg></button><span class="wt-time" id="wt-time">3:00:00</span></div>
 
 <section class="slide" style="background:#cc112c;color:#fafafa">
   <div class="wrap" style="justify-content:center;align-items:center;text-align:center">
@@ -773,6 +780,31 @@ function updateChapbar(n){
   });
 }
 
+// --- countdown timer: 3 hours, counts down, play/pause ---
+(function(){
+  const START=3*60*60; // seconds
+  let remaining=START, running=false, tid=null;
+  const timeEl=document.getElementById('wt-time');
+  const wrap=document.getElementById('wtimer');
+  const btn=document.getElementById('wt-toggle');
+  const icon=document.getElementById('wt-icon');
+  const PLAY='<polygon points="7,5 19,12 7,19"/>';
+  const PAUSE='<rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/>';
+  function render(){
+    const neg=remaining<0; const a=Math.abs(remaining);
+    const h=Math.floor(a/3600), m=Math.floor((a%3600)/60), s=a%60;
+    timeEl.textContent=(neg?'-':'')+h+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+    wrap.classList.toggle('wt-done',remaining<=0);
+  }
+  function tick(){ remaining--; render(); }
+  function setRunning(r){
+    running=r; icon.innerHTML=r?PAUSE:PLAY;
+    btn.setAttribute('aria-label',r?'Pause timer':'Start timer');
+    if(r){ tid=setInterval(tick,1000); } else { clearInterval(tid); tid=null; }
+  }
+  btn.addEventListener('click',e=>{ e.stopPropagation(); setRunning(!running); });
+  render();
+})();
 window.addEventListener('resize',scale);scale();sh(0);
 </script>
 </body>
